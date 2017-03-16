@@ -1,0 +1,83 @@
+<html lang="en">
+    
+<head>
+    <meta charset="UTF-8">
+    
+    <title>Introduction</title>
+    
+    <style>
+        .map {
+            height: 400px;
+            width: 100%;
+        }
+
+        #info {
+            font-family: monospace;
+        }
+
+    </style>
+    <link rel="stylesheet" href="ol.css">
+    
+    <script src="ol.js"></script>
+</head>
+<body>
+    <div id="map" class="map"></div>
+    
+    <div id="mouse-position-click"></div>
+    
+    <h3 id="titreXML"></h3>
+    <div id="info"></div>
+    
+    <br>
+    
+    <h3 id="titreJson"></h3>
+    <div id="infoJson"></div>
+    
+    <script type="text/javascript">
+        // Création de la carte
+        var map = new ol.Map({
+              layers: [
+                new ol.layer.Tile({
+                  source: new ol.source.OSM()
+                })
+              ],
+              target: 'map',
+              view: new ol.View({
+                projection: 'EPSG:4326',
+                center: [1.0687, 49.387],
+                zoom: 18
+              })
+            });
+
+            // ajouter du gestionnaire de clic
+            map.on("click", function(e) {
+              // on récupère la position
+              var lonlat = e.coordinate;
+              var lat = lonlat[1].toFixed(4);
+              var lng = lonlat[0].toFixed(4);
+                
+              // on l'affiche
+              $("#mouse-position-click").html("You clicked near " + lonlat[1].toFixed(4) + " N, " + lonlat[0].toFixed(4) + " E");
+                
+              // on requête le web service geoname pour retrouver la ville/ bâtiment qui correspond aux coordonnées géographiques
+              $.get("http://api.geonames.org/findNearby?lat=" + lat + "&lng=" + lng + "&username=m1gil", function(data) {
+                // on marshall / sérialise le XML information en chaînes de caractères
+                var xml = new XMLSerializer().serializeToString(data);
+                // on l'affiche
+                $("#info").text(xml);
+                $("#titreXML").text("Résultats en XML :");
+              });
+
+              // TODO: appelez la version JSON de ce même web service
+                $.get("http://api.geonames.org/findNearbyJSON?lat=" + lat + "&lng=" + lng + "&username=m1gil", function(data) {
+                    var json = JSON.stringify(data);
+                // on l'affiche
+                $("#infoJson").text(json);
+                $("#titreJson").text("Résultats en JSON :");
+              });
+                
+        });
+    </script>
+    
+    <script src="jquery-3.1.1.min.js"></script>
+</body>
